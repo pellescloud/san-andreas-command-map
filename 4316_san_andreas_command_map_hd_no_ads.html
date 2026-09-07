@@ -270,7 +270,7 @@ a{color:inherit;text-decoration:none}
     });
   }
 
-  function filtered(){const q=search.value.trim().toLowerCase(),f=filter.value;return places.filter(p=>{if(!admin&&p.status==='Skjult')return false;if(onlyActive&&p.status!=='Aktiv')return false;if(f!=='alle'&&p.type!==f)return false;if(!q)return true;return [p.name,p.post,p.type,p.status,p.desc,p.price].join(' ').toLowerCase().includes(q)})}
+  function filtered(){const q=search.value.trim().toLowerCase(),f=filter.value;return places.filter(p=>{if(!admin&&p.status==='Skjult')return false;if(onlyActive&&p.status!=='Aktiv')return false;if(f!=='alle'&&p.type!==f)return false;if(!q)return true;return [p.name,p.post,p.type,p.status,p.desc,p.price].join(' ').toLowerCase().includes(q)}).sort((a,b)=>a.name.localeCompare(b.name,'no'))}
   function updateStats(data){const visible=data.length,active=places.filter(p=>p.status==='Aktiv').length,hidden=places.filter(p=>p.status==='Skjult').length,types=new Set(places.map(p=>p.type)).size;$('#topCount').textContent=places.length;$('#topActive').textContent=active;$('#topTypes').textContent=types;$('#metricVisible').textContent=visible;$('#metricActive').textContent=active;$('#metricHidden').textContent=admin?hidden:'—'}
 
   function render(){
