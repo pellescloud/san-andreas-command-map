@@ -85,14 +85,13 @@ a{color:inherit;text-decoration:none}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 
 /* MAP MARKERS */
-.map-pin-wrap,.pulse-ring-wrap,.district-label-wrap{background:transparent!important;border:none!important}
+.map-pin-wrap,.pulse-ring-wrap{background:transparent!important;border:none!important}
 .map-pin{width:100%;height:100%;border-radius:50%;display:grid;place-items:center;background:#101923;border:2px solid #fff;color:var(--pin-color,#fff);box-shadow:0 6px 16px rgba(0,0,0,.4);transform:scale(0);animation:pinDrop .45s var(--ease) forwards}
 .map-pin svg{width:60%;height:60%;display:block}
 .map-pin.sel{border-width:3px;box-shadow:0 0 0 4px rgba(80,227,164,.28),0 10px 22px rgba(0,0,0,.5);z-index:2}
 @keyframes pinDrop{0%{transform:scale(0) translateY(-8px)}60%{transform:scale(1.18)}100%{transform:scale(1)}}
 .pulse-ring{width:14px;height:14px;margin-left:-7px;margin-top:-7px;border-radius:50%;border:2px solid var(--accent2);animation:pulseRing .9s cubic-bezier(.2,.8,.2,1) forwards}
 @keyframes pulseRing{from{transform:scale(1);opacity:.9}to{transform:scale(9);opacity:0}}
-.district-label{display:inline-block;transform:translate(-50%,-50%);color:rgba(166,255,203,.55);font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;text-shadow:0 0 8px rgba(0,0,0,.9),0 0 14px rgba(80,227,164,.25);white-space:nowrap;pointer-events:none}
 
 /* ONLINE PRESENCE */
 .online-wrap{position:relative;cursor:default}
@@ -251,16 +250,6 @@ a{color:inherit;text-decoration:none}
   // it contradicts the legend-sector guess for the rest, so treat all of these as rough.
   // For pixel-exact placement: hover the spot on the map in-app, read x/y off the bottom-right
   // coords readout, and update the values below.
-  const DISTRICTS=[
-    {name:'Ålesund',x:14,y:10},{name:'Gol',x:42,y:7},{name:'Norefjell',x:47,y:13},
-    {name:'Jevnaker',x:64,y:9},{name:'Hønefoss',x:47,y:21},{name:'Krøderen',x:38,y:19},
-    {name:'Bamble',x:45,y:32},{name:'Bjerke',x:50,y:83},
-    {name:'Sandvika',x:24,y:37},{name:'Bromma',x:17,y:46},
-    {name:'Grünerløkka',x:31,y:51},{name:'Frogner',x:44,y:55},{name:'Ensjø',x:60,y:58},
-    {name:'Oslo',x:48,y:69},{name:'Skøyen',x:40,y:68},{name:'Oslo Torg',x:53,y:67},
-    {name:'Ullevål',x:55,y:77},{name:'Gamle Oslo',x:63,y:78},
-    {name:'Aker Brygge',x:46,y:88},{name:'Oslo Lufthavn',x:37,y:86},{name:'Oslo Havn',x:54,y:90}
-  ];
   function placeColor(p){return p&&p.color?p.color:meta(p?.type).color}
   function getPin(){try{return localStorage.getItem(PIN_KEY)||'0306'}catch{return '0306'}}
   function mapRow(r){return{id:r.id,name:r.name,post:r.post,type:r.type,status:r.status,price:r.price,desc:r.description,oppskrift:r.oppskrift,color:r.color,x:r.x,y:r.y}}
@@ -320,10 +309,6 @@ a{color:inherit;text-decoration:none}
     satelliteLayer=makeTileLayer('satellite');
     postalLayer=makeTileLayer('postal');
     satelliteLayer.addTo(map);
-    const districtGroup=L.layerGroup().addTo(map);
-    DISTRICTS.forEach(d=>{
-      L.marker(pctToLatLng(d),{icon:L.divIcon({className:'district-label-wrap',html:`<span class="district-label">${esc(d.name)}</span>`}),interactive:false,keyboard:false}).addTo(districtGroup);
-    });
     markerGroup=L.layerGroup().addTo(map);
     map.fitBounds([[-MAP_UNITS,0],[0,MAP_UNITS]],{animate:false});
     map.on('mousemove',e=>{const p=latLngToPct(e.latlng);$('#coords').textContent=`x ${p.x.toFixed(1)} · y ${p.y.toFixed(1)}`});
