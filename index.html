@@ -190,13 +190,6 @@ a{color:inherit;text-decoration:none}
     Lokasjon:{color:'#46d6e8',icon:'●'},Gjeng:{color:'#ff657a',icon:'♠'},Bedrift:{color:'#ff985f',icon:'B'},Offentlig:{color:'#e4ebf2',icon:'★'},
     Møtepunkt:{color:'#f4e06d',icon:'◎'},Kriminelt:{color:'#d35cff',icon:'!'},Annet:{color:'#ff8ac7',icon:'•'}
   };
-  const defaults=[
-    {id:'default-stanfields-auto',name:'Stanfields Auto',post:'081',type:'Verksted',status:'Aktiv',price:'',desc:'Eksempelverksted i Los Santos.',x:48,y:78},
-    {id:'default-mirror-park',name:'Mirror Park',post:'726',type:'Lokasjon',status:'Aktiv',price:'',desc:'Eksempel på generell lokasjon.',x:63,y:72},
-    {id:'default-sandy-shores',name:'Sandy Shores',post:'941',type:'Gjeng',status:'Aktiv',price:'',desc:'Eksempelpin for gjengområde. Endre eller slett i adminmodus.',x:55,y:47},
-    {id:'default-paleto-bay',name:'Paleto Bay',post:'011',type:'Lokasjon',status:'Aktiv',price:'',desc:'Nord på kartet.',x:40,y:18}
-  ];
-
   const $=s=>document.querySelector(s);
   const shell=$('#mapShell'),list=$('#places'),search=$('#search'),filter=$('#filter');
   let places=[],selected=null,admin=false,addMode=false,pendingPos=null,editingId=null,onlyActive=false;
@@ -212,13 +205,8 @@ a{color:inherit;text-decoration:none}
   function toRow(p){return{id:p.id,name:p.name,post:p.post,type:p.type,status:p.status,price:p.price,description:p.desc,oppskrift:p.oppskrift,color:p.color,x:p.x,y:p.y}}
   async function initPlaces(){
     const {data,error}=await sb.from('places').select('*');
-    if(error){toast('Kunne ikke laste kartdata',error.message,'danger');places=defaults.map(x=>({...x}));render();return}
-    if(!data.length){
-      await sb.from('places').insert(defaults.map(toRow));
-      places=defaults.map(x=>({...x}));
-    }else{
-      places=data.map(mapRow);
-    }
+    if(error){toast('Kunne ikke laste kartdata',error.message,'danger');places=[];render();return}
+    places=data.map(mapRow);
     render();
   }
   function applyRemoteChange(payload){
