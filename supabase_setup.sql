@@ -6,6 +6,7 @@ create table public.places (
   status text,
   price text,
   description text,
+  oppskrift text,
   color text,
   x double precision,
   y double precision,
@@ -22,3 +23,7 @@ create policy "public update" on public.places for update using (true);
 create policy "public delete" on public.places for delete using (true);
 
 alter publication supabase_realtime add table public.places;
+
+-- If you already ran the block above once, just run this line to add the
+-- new "Oppskrift" (recipe) field to your existing table:
+-- alter table public.places add column if not exists oppskrift text;
