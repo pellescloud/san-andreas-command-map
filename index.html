@@ -120,7 +120,6 @@ a{color:inherit;text-decoration:none}
     <label class="global-search" title="Søk">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <input id="search" autocomplete="off" placeholder="Søk sted, postnummer, type eller status …">
-      <span class="kbd">⌘ K</span>
     </label>
     <div class="top-center">
       <div class="online-wrap" id="onlineWrap">
@@ -161,7 +160,7 @@ a{color:inherit;text-decoration:none}
           </div>
           <input id="importFile" class="file-input" type="file" accept="application/json,.json">
         </div>
-        <div class="filters"><select id="filter" class="select"><option value="alle">Alle typer</option><option>Bolig</option><option>Butikk</option><option>Verksted</option><option>Garasje</option><option>Lokasjon</option><option>Gjeng</option><option>Bedrift</option><option>Offentlig</option><option>Møtepunkt</option><option>Kriminelt</option><option>Annet</option></select><button id="onlyActive" class="filter-chip">Aktive</button></div>
+        <div class="filters"><select id="filter" class="select"><option value="alle">Alle typer</option><option>Bolig</option><option>Butikk</option><option>Garasje</option><option>Lokasjon</option><option>Kriminelt</option></select><button id="onlyActive" class="filter-chip">Aktive</button></div>
       </div>
       <div id="places" class="places"></div>
       <div class="side-foot"><span id="status">Velg et sted i listen eller på kartet.</span><b>v1.4 ECC</b></div>
@@ -176,7 +175,6 @@ a{color:inherit;text-decoration:none}
       <div class="map-hud map-controls"><button id="zoomIn" class="map-tool">＋</button><button id="zoomOut" class="map-tool">−</button><button id="resetView" class="map-tool label">FIT</button></div>
       <div id="tip" class="map-hud tip">Klikk der den nye lokasjonen skal ligge</div>
       <div id="coords" class="map-hud coords">x 50.0 · y 50.0</div>
-      <div class="hd-map-credit">HD tiles · FiveNet / Virus_City / DLK HD Atlas</div>
       <section id="selectionCard" class="selection-card"></section>
     </main>
   </div>
@@ -187,7 +185,7 @@ a{color:inherit;text-decoration:none}
     <div class="form">
       <label class="label full">Navn / adresse<input id="fName" class="field" placeholder="f.eks. Yellow Jack Inn"></label>
       <label class="label">Postnummer<input id="fPost" class="field" placeholder="f.eks. 941"></label>
-      <label class="label">Type<select id="fType" class="field"><option>Bolig</option><option>Butikk</option><option>Verksted</option><option>Garasje</option><option>Lokasjon</option><option>Gjeng</option><option>Bedrift</option><option>Offentlig</option><option>Møtepunkt</option><option>Kriminelt</option><option>Annet</option></select></label>
+      <label class="label">Type<select id="fType" class="field"><option>Bolig</option><option>Butikk</option><option>Garasje</option><option>Lokasjon</option><option>Kriminelt</option></select></label>
       <label class="label">Status<select id="fStatus" class="field"><option>Aktiv</option><option>Ledig</option><option>Opptatt</option><option>Skjult</option><option>Inaktiv</option></select></label>
       <div class="label full">Pin-farge
         <div class="color-picker">
@@ -378,7 +376,6 @@ a{color:inherit;text-decoration:none}
     if(map.hasLayer(satelliteLayer))map.removeLayer(satelliteLayer);if(map.hasLayer(postalLayer))map.removeLayer(postalLayer);
     (source==='postal'?postalLayer:satelliteLayer).addTo(map);
     $('#sourceSatellite').classList.toggle('active',source==='satellite');$('#sourcePostal').classList.toggle('active',source==='postal');
-    toast(source==='postal'?'Postal / Atlas aktiv':'HD Satellite aktiv',source==='postal'?'Viser høyoppløselige kartfliser med postalkart.':'Viser høyoppløselige satellittfliser uten reklame.');
   }
 
   $('#zoomIn').onclick=()=>map&&map.zoomIn(.5);$('#zoomOut').onclick=()=>map&&map.zoomOut(.5);$('#resetView').onclick=()=>map&&map.fitBounds([[-MAP_UNITS,0],[0,MAP_UNITS]],{animate:true,padding:[4,4]});
@@ -446,7 +443,7 @@ a{color:inherit;text-decoration:none}
   $('#importBtn').onclick=()=>$('#importFile').click();$('#importFile').onchange=async e=>{const file=e.target.files?.[0];if(!file)return;try{const obj=JSON.parse(await file.text()),incoming=Array.isArray(obj)?obj:obj.places;if(!Array.isArray(incoming))throw new Error();if(!confirm(`Importere ${incoming.length} steder? Dette erstatter dagens data.`))return;const incomingIds=new Set(incoming.map(p=>p.id));const{data:existing}=await sb.from('places').select('id');const toDelete=(existing||[]).map(r=>r.id).filter(id=>!incomingIds.has(id));if(toDelete.length)await sb.from('places').delete().in('id',toDelete);const{error}=await sb.from('places').upsert(incoming.map(toRow));if(error)throw error;places=incoming;selected=null;render();toast('Import fullført',`${incoming.length} steder ble lastet inn.`)}catch(err){toast('Import feilet',err?.message||'Filen ser ikke ut som gyldige kartdata.','danger')}e.target.value=''};
 
   window.addEventListener('resize',()=>map&&map.invalidateSize());
-  window.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();search.focus();search.select()}if(e.key==='Escape'){addMode=false;shell.classList.remove('add-mode');$('#tip').classList.remove('show');[placeModal,adminModal,pinModal].forEach(x=>x.classList.remove('show'))}});
+  window.addEventListener('keydown',e=>{if(e.key==='Escape'){addMode=false;shell.classList.remove('add-mode');$('#tip').classList.remove('show');[placeModal,adminModal,pinModal].forEach(x=>x.classList.remove('show'))}});
 
   const NAME_KEY='gta-rp-map-visitor-name-v1';
   const nameGateModal=$('#nameGateModal');
