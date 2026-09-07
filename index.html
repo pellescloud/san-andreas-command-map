@@ -437,7 +437,7 @@ a{color:inherit;text-decoration:none}
   function renderOnline(names){$('#onlineCount').textContent=names.length||1;$('#onlineNames').innerHTML=names.length?names.map(n=>`<div>${esc(n)}</div>`).join(''):'<div>Ingen andre inne nå.</div>'}
   function joinPresence(name){
     const channel=sb.channel('4316-online',{config:{presence:{key:uid()}}});
-    channel.on('presence',{event:'sync'},()=>{const state=channel.presenceState();renderOnline(Object.values(state).flat().map(p=>p.name))});
+    channel.on('presence',{event:'sync'},()=>{const state=channel.presenceState();renderOnline(Object.values(state).flat().map(p=>p.name).filter(n=>n&&n.trim().toLowerCase()!=='testeren'))});
     channel.subscribe(status=>{if(status==='SUBSCRIBED')channel.track({name})});
   }
   function enterSite(name){setVisitorName(name);nameGateModal.classList.remove('show');joinPresence(name)}
