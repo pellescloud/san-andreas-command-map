@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="dark">
-<title>4316 · San Andreas Command Map</title>
+<title>4316 gjengkart</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 :root{
@@ -80,6 +80,32 @@ a{color:inherit;text-decoration:none}
 @media(max-width:1080px){.topbar{grid-template-columns:auto 1fr auto}.top-center{display:none}.workspace{grid-template-columns:310px 1fr}.brand{min-width:235px}.brand-sub{display:none}}
 .hd-pin-tooltip{background:rgba(7,12,18,.94)!important;border:1px solid rgba(255,255,255,.14)!important;color:#edf4fa!important;border-radius:9px!important;box-shadow:0 8px 24px rgba(0,0,0,.28)!important;font-size:10px!important;font-weight:750!important;padding:6px 8px!important}.hd-pin-tooltip:before{display:none!important}
 @media(max-width:780px){body{overflow:auto}.app{height:auto;min-height:100vh;grid-template-rows:auto auto}.topbar{grid-template-columns:1fr auto;gap:10px;padding:10px}.brand{min-width:0}.brand-logo{width:64px}.global-search{grid-column:1/-1;grid-row:2}.workspace{grid-template-columns:1fr;grid-template-rows:42vh 58vh;padding:10px}.sidebar{grid-row:2}.map-card{grid-row:1}.metrics{display:none}.side-head{padding:12px 14px 10px}.side-head p{display:none}.places{max-height:35vh}.selection-card{right:12px;left:12px;bottom:12px;width:auto}.legend{display:none}.map-source-switch{right:12px;top:12px}.map-controls{right:12px}.map-title{left:14px;top:14px}.map-title p{display:none}.top-actions .solid-btn span{display:none}}
+
+/* MAP MARKERS */
+.map-pin-wrap,.pulse-ring-wrap,.district-label-wrap{background:transparent!important;border:none!important}
+.map-pin{width:100%;height:100%;border-radius:50%;display:grid;place-items:center;background:#101923;border:2px solid #fff;color:var(--pin-color,#fff);box-shadow:0 6px 16px rgba(0,0,0,.4);transform:scale(0);animation:pinDrop .45s var(--ease) forwards}
+.map-pin svg{width:60%;height:60%;display:block}
+.map-pin.sel{border-width:3px;box-shadow:0 0 0 4px rgba(80,227,164,.28),0 10px 22px rgba(0,0,0,.5);z-index:2}
+@keyframes pinDrop{0%{transform:scale(0) translateY(-8px)}60%{transform:scale(1.18)}100%{transform:scale(1)}}
+.pulse-ring{width:14px;height:14px;margin-left:-7px;margin-top:-7px;border-radius:50%;border:2px solid var(--accent2);animation:pulseRing .9s cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes pulseRing{from{transform:scale(1);opacity:.9}to{transform:scale(9);opacity:0}}
+.district-label{display:inline-block;transform:translate(-50%,-50%);color:rgba(166,255,203,.55);font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;text-shadow:0 0 8px rgba(0,0,0,.9),0 0 14px rgba(80,227,164,.25);white-space:nowrap;pointer-events:none}
+
+/* ONLINE PRESENCE */
+.online-wrap{position:relative;cursor:default}
+.online-panel{display:none;position:absolute;top:calc(100% + 10px);left:0;min-width:170px;max-width:240px;border:1px solid var(--line2);border-radius:12px;background:rgba(10,15,22,.98);box-shadow:0 12px 32px -14px rgba(0,0,0,.5);padding:10px;z-index:200}
+.online-wrap:hover .online-panel{display:block}
+.online-panel-title{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:#7d8a99;margin-bottom:6px}
+.online-names{display:grid;gap:4px;font-size:11px;color:#dce4ed;max-height:160px;overflow:auto}
+
+/* ADMIN MENU */
+.admin-menu-wrap{position:relative}
+.admin-menu-panel{position:absolute;top:calc(100% + 6px);left:0;display:grid;gap:5px;min-width:160px;border:1px solid var(--line2);border-radius:11px;background:#0d141c;box-shadow:0 12px 32px -14px rgba(0,0,0,.5);padding:6px;z-index:60}
+.admin-menu-panel button{width:100%;text-align:left}
+
+/* RECIPE STEPS */
+.recipe-steps-label{margin-top:2px;font-size:9px}
+.sel-recipe-steps{list-style:decimal}
 </style>
 </head>
 <body>
@@ -94,7 +120,13 @@ a{color:inherit;text-decoration:none}
       <span class="kbd">⌘ K</span>
     </label>
     <div class="top-center">
-      <div class="status-pill"><i class="status-dot"></i><span>System online</span></div>
+      <div class="online-wrap" id="onlineWrap">
+        <div class="status-pill"><i class="status-dot"></i><span><strong id="onlineCount">1</strong> pålogget</span></div>
+        <div id="onlinePanel" class="online-panel">
+          <div class="online-panel-title">Inne nå</div>
+          <div id="onlineNames" class="online-names"></div>
+        </div>
+      </div>
       <div class="stat"><strong id="topCount">0</strong><span>steder</span></div>
       <div class="stat"><strong id="topActive">0</strong><span>aktive</span></div>
       <div class="stat"><strong id="topTypes">0</strong><span>typer</span></div>
@@ -108,7 +140,7 @@ a{color:inherit;text-decoration:none}
 
   <div class="workspace">
     <aside class="sidebar">
-      <div class="side-head"><div class="eyebrow">Lokasjonsregister</div><h2>Utforsk San Andreas</h2><p>Filtrer kartet, finn adresser og åpne detaljene for en lokasjon.</p></div>
+      <div class="side-head"><div class="eyebrow">4316 · Kartdata</div><h2>Lokasjonsregister</h2></div>
       <div class="metrics">
         <div class="metric"><strong id="metricVisible">0</strong><span>vist nå</span></div>
         <div class="metric"><strong id="metricActive">0</strong><span>aktive</span></div>
@@ -116,13 +148,20 @@ a{color:inherit;text-decoration:none}
       </div>
       <div>
         <div id="adminStrip" class="admin-strip">
-          <button id="exportBtn">Eksporter</button><button id="importBtn">Importer</button><button id="changePinBtn">Endre PIN</button><button class="admin-on">ADMIN PÅ</button>
+          <div class="admin-menu-wrap">
+            <button id="adminMenuBtn" class="icon-btn" title="Adminverktøy">⋯</button>
+            <div id="adminMenuPanel" class="admin-menu-panel hidden">
+              <button id="exportBtn">Eksporter kartdata</button>
+              <button id="importBtn">Importer kartdata</button>
+              <button id="changePinBtn">Endre PIN</button>
+            </div>
+          </div>
           <input id="importFile" class="file-input" type="file" accept="application/json,.json">
         </div>
         <div class="filters"><select id="filter" class="select"><option value="alle">Alle typer</option><option>Bolig</option><option>Butikk</option><option>Verksted</option><option>Garasje</option><option>Lokasjon</option><option>Gjeng</option><option>Bedrift</option><option>Offentlig</option><option>Møtepunkt</option><option>Kriminelt</option><option>Annet</option></select><button id="onlyActive" class="filter-chip">Aktive</button></div>
       </div>
       <div id="places" class="places"></div>
-      <div class="side-foot"><span id="status">Velg et sted i listen eller på kartet.</span><b>v5.0 HD</b></div>
+      <div class="side-foot"><span id="status">Velg et sted i listen eller på kartet.</span><b>v1.4 ECC</b></div>
     </aside>
 
     <main class="map-card">
@@ -131,7 +170,6 @@ a{color:inherit;text-decoration:none}
       <div class="map-hud map-source-switch">
         <button id="sourceSatellite" class="source-btn active">HD Satellite</button>
         <button id="sourcePostal" class="source-btn">Postal / Atlas</button>
-        <a class="source-btn source-link" href="https://github.com/fivenet-app/livemap-tiles" target="_blank" rel="noopener" title="Kartfliser / credits">↗</a>
       </div>
       <div class="map-hud map-controls"><button id="zoomIn" class="map-tool">＋</button><button id="zoomOut" class="map-tool">−</button><button id="resetView" class="map-tool label">FIT</button></div>
       <div id="tip" class="map-hud tip">Klikk der den nye lokasjonen skal ligge</div>
@@ -170,8 +208,9 @@ a{color:inherit;text-decoration:none}
   </div>
 </div>
 
-<div id="adminModal" class="backdrop"><div class="modal small"><div class="modal-kicker">Sikker sone</div><h2>Adminmodus</h2><p class="modal-sub">Skriv inn admin-PIN for å redigere, opprette og slette kartdata.</p><label class="label">PIN<input id="adminPinInput" class="field" type="password" inputmode="numeric" autocomplete="off" placeholder="••••"></label><p class="hint">Standard-PIN er 1234. Beskyttelsen lagres lokalt i nettleseren og erstatter ikke serversikkerhet.</p><div class="modal-actions"><button id="cancelAdmin" class="solid-btn">Avbryt</button><button id="loginAdmin" class="solid-btn primary">Lås opp</button></div></div></div>
+<div id="adminModal" class="backdrop"><div class="modal small"><div class="modal-kicker">Sikker sone</div><h2>Adminmodus</h2><p class="modal-sub">Skriv inn admin-PIN for å redigere, opprette og slette kartdata.</p><label class="label">PIN<input id="adminPinInput" class="field" type="password" inputmode="numeric" autocomplete="off" placeholder="••••"></label><p class="hint">Standard-PIN er 0306. Beskyttelsen lagres lokalt i nettleseren og erstatter ikke serversikkerhet.</p><div class="modal-actions"><button id="cancelAdmin" class="solid-btn">Avbryt</button><button id="loginAdmin" class="solid-btn primary">Lås opp</button></div></div></div>
 <div id="pinModal" class="backdrop"><div class="modal small"><div class="modal-kicker">Admin</div><h2>Endre PIN</h2><p class="modal-sub">Velg en ny lokal PIN for adminmodus.</p><div class="form"><label class="label full">Ny PIN<input id="newPin1" class="field" type="password" inputmode="numeric"></label><label class="label full">Gjenta PIN<input id="newPin2" class="field" type="password" inputmode="numeric"></label></div><div class="modal-actions"><button id="cancelPin" class="solid-btn">Avbryt</button><button id="savePin" class="solid-btn primary">Lagre PIN</button></div></div></div>
+<div id="nameGateModal" class="backdrop show"><div class="modal small"><div class="modal-kicker">4316 · Velkommen</div><h2>Hvem er du?</h2><p class="modal-sub">Skriv navnet ditt for å se kartet. Dette vises til andre som er inne nå.</p><label class="label full">Navn<input id="nameGateInput" class="field" maxlength="40" placeholder="f.eks. Pelle" autocomplete="off"></label><div class="modal-actions"><button id="nameGateSubmit" class="solid-btn primary">Se kartet</button></div></div></div>
 <div id="toastStack" class="toast-stack"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -186,17 +225,17 @@ a{color:inherit;text-decoration:none}
   const MAP_UNITS=16384;
   const ICON_ATTRS='width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
   const TYPES={
-    Bolig:{color:'#50e3a4',icon:`<svg ${ICON_ATTRS}><path d="M2 10.5L12 2.5l10 8"/><path d="M4 9.5V20a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9.5"/><path d="M10 21v-5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5"/></svg>`},
-    Butikk:{color:'#70a7ff',icon:`<svg ${ICON_ATTRS}><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>`},
-    Verksted:{color:'#ffc857',icon:`<svg ${ICON_ATTRS}><path d="M3 10l9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V10z"/><path d="M9 21v-4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v4"/><path d="M12 8.5a2.5 2.5 0 0 1 3.5 3.5l-6 6"/><circle cx="8.5" cy="17.5" r="1.5"/></svg>`},
-    Garasje:{color:'#a98bff',icon:`<svg ${ICON_ATTRS}><path d="M2 10l10-7 10 7"/><path d="M4 8.5V20a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V8.5"/><path d="M7 21V11a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v10"/><path d="M7 13.5h10M7 17h10"/></svg>`},
-    Lokasjon:{color:'#46d6e8',icon:`<svg ${ICON_ATTRS}><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>`},
-    Gjeng:{color:'#ff657a',icon:`<svg ${ICON_ATTRS}><line x1="8" y1="2" x2="8" y2="21"/><path d="M8 3.5h11l-3 4 3 4H8"/><path d="M2.5 17.5c0-1.8 4.3-3.2 9.5-3.2s9.5 1.4 9.5 3.2-4.3 3.2-9.5 3.2-9.5-1.4-9.5-3.2"/></svg>`},
-    Bedrift:{color:'#ff985f',icon:`<svg ${ICON_ATTRS}><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/><path d="M12 12v2"/></svg>`},
-    Offentlig:{color:'#e4ebf2',icon:`<svg ${ICON_ATTRS}><path d="M12 3 3 8h18Z"/><path d="M6 8v10M10 8v10M14 8v10M18 8v10"/><path d="M4 18h16"/><path d="M2 21h20"/></svg>`},
-    Møtepunkt:{color:'#f4e06d',icon:`<svg ${ICON_ATTRS}><circle cx="12" cy="12" r="3"/><path d="M12 2v6m-3-3 3 3 3-3M12 22v-6m-3 3 3-3 3 3M2 12h6m-3-3 3 3-3 3M22 12h-6m3-3-3 3 3 3"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></svg>`},
-    Kriminelt:{color:'#d35cff',icon:`<svg ${ICON_ATTRS}><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`},
-    Annet:{color:'#ff8ac7',icon:`<svg ${ICON_ATTRS}><circle cx="12" cy="12" r="9"/><circle cx="8" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="16" cy="12" r="1" fill="currentColor" stroke="none"/></svg>`}
+    Bolig:{color:'#50e3a4',icon:`<svg ${ICON_ATTRS}><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>`},
+    Butikk:{color:'#70a7ff',icon:`<svg ${ICON_ATTRS}><path d="M15 21v-5a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v5"/><path d="M17.774 10.31a1.12 1.12 0 0 0-1.549 0 2.5 2.5 0 0 1-3.451 0 1.12 1.12 0 0 0-1.548 0 2.5 2.5 0 0 1-3.452 0 1.12 1.12 0 0 0-1.549 0 2.5 2.5 0 0 1-3.77-3.248l2.889-4.184A2 2 0 0 1 7 2h10a2 2 0 0 1 1.653.873l2.895 4.192a2.5 2.5 0 0 1-3.774 3.244"/><path d="M4 10.95V19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8.05"/></svg>`},
+    Verksted:{color:'#ffc857',icon:`<svg ${ICON_ATTRS}><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z"/></svg>`},
+    Garasje:{color:'#a98bff',icon:`<svg ${ICON_ATTRS}><path d="M18 21V10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1v11"/><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 1.132-1.803l7.95-3.974a2 2 0 0 1 1.837 0l7.948 3.974A2 2 0 0 1 22 8z"/><path d="M6 13h12"/><path d="M6 17h12"/></svg>`},
+    Lokasjon:{color:'#46d6e8',icon:`<svg ${ICON_ATTRS}><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>`},
+    Gjeng:{color:'#ff657a',icon:`<svg ${ICON_ATTRS}><path d="m13 19 6-6"/><path d="M14.5 17.5 3.586 6.586A2 2 0 013 5.172V3h2.172a2 2 0 011.414.586L17.5 14.5"/><path d="m14.828 6.172 2.586-2.586A2 2 0 0118.828 3H21v2.172a2 2 0 01-.586 1.414l-2.586 2.586"/><path d="m16 16 4 4"/><path d="m19 21 2-2"/><path d="m5 14 4 4"/><path d="m5 21-2-2"/><path d="M7.5 16.5 4 20"/></svg>`},
+    Bedrift:{color:'#ff985f',icon:`<svg ${ICON_ATTRS}><path d="M10 12h4"/><path d="M10 8h4"/><path d="M14 21v-3a2 2 0 0 0-4 0v3"/><path d="M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2"/><path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/></svg>`},
+    Offentlig:{color:'#e4ebf2',icon:`<svg ${ICON_ATTRS}><path d="M10 18v-7"/><path d="M11.119 2.205a2 2 0 0 1 1.762 0l7.84 3.846A.5.5 0 0 1 20.5 7h-17a.5.5 0 0 1-.22-.949z"/><path d="M14 18v-7"/><path d="M18 18v-7"/><path d="M3 22h18"/><path d="M6 18v-7"/></svg>`},
+    Møtepunkt:{color:'#f4e06d',icon:`<svg ${ICON_ATTRS}><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg>`},
+    Kriminelt:{color:'#d35cff',icon:`<svg ${ICON_ATTRS}><path d="m12.5 17-.5-1-.5 1h1z"/><path d="M15 22a1 1 0 0 0 1-1v-1a2 2 0 0 0 1.56-3.25 8 8 0 1 0-11.12 0A2 2 0 0 0 8 20v1a1 1 0 0 0 1 1z"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="12" r="1"/></svg>`},
+    Annet:{color:'#ff8ac7',icon:`<svg ${ICON_ATTRS}><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>`}
   };
   const $=s=>document.querySelector(s);
   const shell=$('#mapShell'),list=$('#places'),search=$('#search'),filter=$('#filter');
@@ -207,8 +246,18 @@ a{color:inherit;text-decoration:none}
   function uid(){return crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2)}
   function meta(t){return TYPES[t]||TYPES.Annet}
   const PIN_COLORS=['#50e3a4','#70a7ff','#ffc857','#a98bff','#46d6e8','#ff657a','#ff985f','#e4ebf2','#f4e06d','#d35cff','#ff8ac7','#ffffff','#111827'];
+  // ponytail: eyeballed from reference screenshots, not exact game coords — nudge x/y if a label sits off
+  const DISTRICTS=[
+    {name:'Sandvika',x:25,y:40},{name:'Grünerløkka',x:33,y:50},{name:'Frogner',x:40,y:58},
+    {name:'Ensjø',x:58,y:60},{name:'Oslo',x:48,y:66},{name:'Skøyen',x:40,y:64},
+    {name:'Oslo Torg',x:52,y:64},{name:'Ullevål',x:48,y:75},{name:'Gamle Oslo',x:58,y:76},
+    {name:'Aker Brygge',x:44,y:86},{name:'Oslo Lufthavn',x:35,y:88},{name:'Oslo Havn',x:55,y:88},
+    {name:'Jevnaker',x:58,y:12},{name:'Hønefoss',x:43,y:24},{name:'Krøderen',x:38,y:22},
+    {name:'Bamble',x:44,y:33},{name:'Bjerke',x:48,y:38},{name:'Bromma',x:30,y:32},
+    {name:'Ålesund',x:12,y:15},{name:'Gol',x:35,y:8},{name:'Norefjell',x:40,y:15}
+  ];
   function placeColor(p){return p&&p.color?p.color:meta(p?.type).color}
-  function getPin(){try{return localStorage.getItem(PIN_KEY)||'1234'}catch{return '1234'}}
+  function getPin(){try{return localStorage.getItem(PIN_KEY)||'0306'}catch{return '0306'}}
   function mapRow(r){return{id:r.id,name:r.name,post:r.post,type:r.type,status:r.status,price:r.price,desc:r.description,oppskrift:r.oppskrift,color:r.color,x:r.x,y:r.y}}
   function toRow(p){return{id:p.id,name:p.name,post:p.post,type:p.type,status:p.status,price:p.price,description:p.desc,oppskrift:p.oppskrift,color:p.color,x:p.x,y:p.y}}
   async function initPlaces(){
@@ -266,6 +315,10 @@ a{color:inherit;text-decoration:none}
     satelliteLayer=makeTileLayer('satellite');
     postalLayer=makeTileLayer('postal');
     satelliteLayer.addTo(map);
+    const districtGroup=L.layerGroup().addTo(map);
+    DISTRICTS.forEach(d=>{
+      L.marker(pctToLatLng(d),{icon:L.divIcon({className:'district-label-wrap',html:`<span class="district-label">${esc(d.name)}</span>`}),interactive:false,keyboard:false}).addTo(districtGroup);
+    });
     markerGroup=L.layerGroup().addTo(map);
     map.fitBounds([[-MAP_UNITS,0],[0,MAP_UNITS]],{animate:false});
     map.on('mousemove',e=>{const p=latLngToPct(e.latlng);$('#coords').textContent=`x ${p.x.toFixed(1)} · y ${p.y.toFixed(1)}`});
@@ -288,10 +341,12 @@ a{color:inherit;text-decoration:none}
     if(markerGroup)markerGroup.clearLayers();
     if(!data.length)list.innerHTML='<div class="empty">Ingen lokasjoner matcher filtrene.<br>Prøv et annet søk eller en annen type.</div>';
     data.forEach(p=>{
-      const m=meta(p.type),c=placeColor(p);
+      const m=meta(p.type),c=placeColor(p),isSel=selected===p.id;
       if(markerGroup&&map){
-        const mark=L.circleMarker(pctToLatLng(p),{radius:selected===p.id?8:5.5,color:'#ffffff',weight:selected===p.id?2.5:2,opacity:.98,fillColor:c,fillOpacity:1,bubblingMouseEvents:false});
-        mark.bindTooltip(esc(p.name),{direction:'top',offset:[0,-7],opacity:.92,className:'hd-pin-tooltip'});
+        const size=isSel?38:30;
+        const icon=L.divIcon({className:'map-pin-wrap',html:`<div class="map-pin${isSel?' sel':''}" style="--pin-color:${c}">${m.icon}</div>`,iconSize:[size,size],iconAnchor:[size/2,size/2]});
+        const mark=L.marker(pctToLatLng(p),{icon,bubblingMouseEvents:false});
+        mark.bindTooltip(esc(p.name),{direction:'top',offset:[0,-size/2],opacity:.92,className:'hd-pin-tooltip'});
         mark.on('click',()=>selectPlace(p.id,true));
         markerGroup.addLayer(mark);
       }
@@ -300,10 +355,16 @@ a{color:inherit;text-decoration:none}
     renderLegend();renderSelection();
   }
   function renderLegend(){const types=[...new Set(filtered().map(p=>p.type))].slice(0,6);$('#legend').innerHTML='<div class="legend-title">Tegnforklaring</div>'+types.map(t=>`<div class="legend-item"><i class="legend-dot" style="background:${meta(t).color}"></i>${esc(t)}</div>`).join('')}
-  function renderSelection(){const box=$('#selectionCard');if(!selected){box.classList.remove('show');box.innerHTML='';return}const p=places.find(x=>x.id===selected);if(!p){selected=null;box.classList.remove('show');return}const m=meta(p.type),c=placeColor(p);box.innerHTML=`<div class="sel-head"><div class="sel-icon" style="color:${c}">${m.icon}</div><div><div class="sel-title">${esc(p.name)}</div><div class="sel-sub">${esc(p.type)}${p.post?' · postnr. '+esc(p.post):''}</div></div><button class="close-x" data-close>×</button></div>${p.desc?`<div class="sel-desc">${esc(p.desc)}</div>`:''}${p.oppskrift?`<div class="sel-desc"><b>Oppskrifter</b>${parseOppskrift(p.oppskrift).map(r=>`<div class="sel-recipe-block">${r.result?`<div class="sel-recipe-title">${esc(r.result)}</div>`:''}<ul class="sel-recipe">${r.rows.filter(x=>x.item).map(x=>`<li>${x.qty?esc(x.qty)+'x ':''}${esc(x.item)}</li>`).join('')}</ul></div>`).join('')}</div>`:''}<div class="sel-grid"><div class="sel-field"><span>Status</span><b>${esc(p.status||'—')}</b></div><div class="sel-field"><span>Postnr.</span><b>${esc(p.post||'—')}</b></div><div class="sel-field"><span>Verdi</span><b>${esc(p.price||'—')}</b></div></div>${admin?'<div class="sel-actions"><button data-edit>Rediger</button><button class="danger" data-delete>Slett</button></div>':''}`;box.classList.add('show');box.querySelector('[data-close]').onclick=()=>{selected=null;render()};if(admin){box.querySelector('[data-edit]').onclick=()=>openEdit(p);box.querySelector('[data-delete]').onclick=()=>deletePlace(p.id)}}
+  function renderSelection(){const box=$('#selectionCard');if(!selected){box.classList.remove('show');box.innerHTML='';return}const p=places.find(x=>x.id===selected);if(!p){selected=null;box.classList.remove('show');return}const m=meta(p.type),c=placeColor(p);box.innerHTML=`<div class="sel-head"><div class="sel-icon" style="color:${c}">${m.icon}</div><div><div class="sel-title">${esc(p.name)}</div><div class="sel-sub">${esc(p.type)}${p.post?' · postnr. '+esc(p.post):''}</div></div><button class="close-x" data-close>×</button></div>${p.desc?`<div class="sel-desc">${esc(p.desc)}</div>`:''}${p.oppskrift?`<div class="sel-desc"><b>Oppskrifter</b>${parseOppskrift(p.oppskrift).map(r=>`<div class="sel-recipe-block">${r.result?`<div class="sel-recipe-title">${esc(r.result)}</div>`:''}<ul class="sel-recipe">${r.rows.filter(x=>x.item).map(x=>`<li>${x.qty?esc(x.qty)+'x ':''}${esc(x.item)}</li>`).join('')}</ul>${r.steps?`<div class="sel-recipe-title">Fremgangsmåte</div><ol class="sel-recipe sel-recipe-steps">${r.steps.split('\n').filter(Boolean).map(s=>`<li>${esc(s)}</li>`).join('')}</ol>`:''}</div>`).join('')}</div>`:''}<div class="sel-grid"><div class="sel-field"><span>Status</span><b>${esc(p.status||'—')}</b></div><div class="sel-field"><span>Postnr.</span><b>${esc(p.post||'—')}</b></div><div class="sel-field"><span>Verdi</span><b>${esc(p.price||'—')}</b></div></div>${admin?'<div class="sel-actions"><button data-edit>Rediger</button><button class="danger" data-delete>Slett</button></div>':''}`;box.classList.add('show');box.querySelector('[data-close]').onclick=()=>{selected=null;render()};if(admin){box.querySelector('[data-edit]').onclick=()=>openEdit(p);box.querySelector('[data-delete]').onclick=()=>deletePlace(p.id)}}
   function selectPlace(id,focus=true){selected=id;render();const p=places.find(x=>x.id===id);$('#status').textContent=p?`${p.name}${p.post?' · '+p.post:''}`:'';if(focus&&p)focusOn(p)}
   async function deletePlace(id){if(!admin)return;const p=places.find(x=>x.id===id);if(!p)return;if(!confirm(`Slette «${p.name}»?`))return;const{error}=await sb.from('places').delete().eq('id',id);if(error){toast('Sletting feilet',error.message,'danger');return}places=places.filter(x=>x.id!==id);if(selected===id)selected=null;render();toast('Lokasjon slettet',p.name)}
-  function focusOn(p){if(!map)return;map.flyTo(pctToLatLng(p),Math.max(map.getZoom(),5.5),{duration:.55})}
+  function focusOn(p){
+    if(!map)return;
+    const target=pctToLatLng(p);
+    map.flyTo(target,Math.max(map.getZoom(),5.5),{duration:1.15,easeLinearity:.15});
+    const ring=L.marker(target,{icon:L.divIcon({className:'pulse-ring-wrap',html:'<div class="pulse-ring"></div>',iconSize:[0,0]}),interactive:false,keyboard:false}).addTo(map);
+    setTimeout(()=>map.removeLayer(ring),900);
+  }
 
   function setAdmin(on){admin=on;$('#addBtn').classList.toggle('hidden',!on);$('#adminBtn').classList.toggle('hidden',on);$('#logoutBtn').classList.toggle('hidden',!on);$('#adminStrip').classList.toggle('show',on);$('#status').textContent=on?'Adminmodus aktiv · klikk «Ny lokasjon» for å plassere en pin.':'Visningsmodus';render();toast(on?'Adminmodus aktiv':'Adminmodus låst',on?'Du kan nå redigere kartdata.':'Kartet er tilbake i visningsmodus.')}
   function setMapSource(source){
@@ -324,30 +385,37 @@ a{color:inherit;text-decoration:none}
   function renderColorPresets(){const wrap=$('#colorPresets');wrap.innerHTML=PIN_COLORS.map(c=>`<button type="button" class="color-swatch" data-color="${c}" style="--swatch:${c}" title="${c}"></button>`).join('');wrap.querySelectorAll('[data-color]').forEach(btn=>btn.onclick=()=>{customColor=true;$('#fColor').value=btn.dataset.color;syncColorUi()})}
   function syncColorUi(){const val=$('#fColor').value.toLowerCase();$('#useTypeColor').classList.toggle('active',!customColor);$('#colorPresets').querySelectorAll('[data-color]').forEach(btn=>btn.classList.toggle('active',btn.dataset.color.toLowerCase()===val))}
   function setTypeColor(){customColor=false;$('#fColor').value=meta($('#fType').value).color;syncColorUi()}
-  function emptyRecipe(){return{result:'',rows:[{item:'',qty:''}]}}
+  function emptyRecipe(){return{result:'',rows:[{item:'',qty:''}],steps:''}}
   function parseOppskrift(text){
     if(!text)return[];
     return text.split(/\n\s*\n/).map(b=>b.trim()).filter(Boolean).map(block=>{
       const lines=block.split('\n').map(s=>s.trim()).filter(Boolean);
       let result='';
-      if(lines.length&&lines[0].endsWith(':'))result=lines.shift().slice(0,-1).trim();
-      const rows=lines.map(s=>{const m=s.match(/^(\d+)\s*x?\s*(.+)$/i);return m?{qty:m[1],item:m[2].trim()}:{qty:'',item:s}});
-      return{result,rows:rows.length?rows:[{item:'',qty:''}]};
+      if(lines.length&&lines[0].endsWith(':')&&!/^fremgangsm[åa]te:?$/i.test(lines[0]))result=lines.shift().slice(0,-1).trim();
+      const stepIdx=lines.findIndex(l=>/^fremgangsm[åa]te:?$/i.test(l));
+      const ingLines=stepIdx===-1?lines:lines.slice(0,stepIdx);
+      const stepLines=stepIdx===-1?[]:lines.slice(stepIdx+1);
+      const rows=ingLines.map(s=>{const m=s.match(/^(\d+)\s*x?\s*(.+)$/i);return m?{qty:m[1],item:m[2].trim()}:{qty:'',item:s}});
+      const steps=stepLines.map(s=>s.replace(/^\d+[.)]\s*/,'')).join('\n');
+      return{result,rows:rows.length?rows:[{item:'',qty:''}],steps};
     });
   }
   function serializeOppskrift(list){
     return list.map(r=>{
       const rowLines=r.rows.filter(x=>x.item.trim()).map(x=>x.qty?`${x.qty}x ${x.item.trim()}`:x.item.trim());
-      if(!r.result.trim()&&!rowLines.length)return'';
-      const lines=[];if(r.result.trim())lines.push(r.result.trim()+':');lines.push(...rowLines);return lines.join('\n');
+      const stepLines=(r.steps||'').split('\n').map(s=>s.trim()).filter(Boolean);
+      if(!r.result.trim()&&!rowLines.length&&!stepLines.length)return'';
+      const lines=[];if(r.result.trim())lines.push(r.result.trim()+':');lines.push(...rowLines);
+      if(stepLines.length){lines.push('Fremgangsmåte:');stepLines.forEach((s,i)=>lines.push(`${i+1}. ${s}`))}
+      return lines.join('\n');
     }).filter(Boolean).join('\n\n');
   }
   let oppskriftList=[];
   function renderOppskriftList(){
     const wrap=$('#oppskriftList');
-    wrap.innerHTML=oppskriftList.map((r,ri)=>`<div class="recipe-block"><div class="recipe-head"><input class="field" data-ri="${ri}" data-rf="result" placeholder="Hva lager du? f.eks. Låsedirk" aria-label="Navn på oppskrift" value="${esc(r.result||'')}"><button type="button" class="row-remove" data-remove-recipe="${ri}" title="Fjern oppskrift">×</button></div><div class="oppskrift-rows">${r.rows.map((row,ii)=>`<div class="oppskrift-row"><input class="field" data-ri="${ri}" data-ii="${ii}" data-f="item" placeholder="Gjenstand, f.eks. Stål" aria-label="Ingrediens" value="${esc(row.item||'')}"><input class="field" data-ri="${ri}" data-ii="${ii}" data-f="qty" type="number" min="0" placeholder="Antall" aria-label="Antall" value="${esc(row.qty||'')}"><button type="button" class="row-remove" data-remove-row="${ri}:${ii}" title="Fjern ingrediens">×</button></div>`).join('')}</div><button type="button" class="type-color-btn oppskrift-add" data-add-row="${ri}">+ Legg til ingrediens</button></div>`).join('');
+    wrap.innerHTML=oppskriftList.map((r,ri)=>`<div class="recipe-block"><div class="recipe-head"><input class="field" data-ri="${ri}" data-rf="result" placeholder="Hva lager du? f.eks. Låsedirk" aria-label="Navn på oppskrift" value="${esc(r.result||'')}"><button type="button" class="row-remove" data-remove-recipe="${ri}" title="Fjern oppskrift">×</button></div><div class="oppskrift-rows">${r.rows.map((row,ii)=>`<div class="oppskrift-row"><input class="field" data-ri="${ri}" data-ii="${ii}" data-f="item" placeholder="Gjenstand, f.eks. Stål" aria-label="Ingrediens" value="${esc(row.item||'')}"><input class="field" data-ri="${ri}" data-ii="${ii}" data-f="qty" type="number" min="0" placeholder="Antall" aria-label="Antall" value="${esc(row.qty||'')}"><button type="button" class="row-remove" data-remove-row="${ri}:${ii}" title="Fjern ingrediens">×</button></div>`).join('')}</div><button type="button" class="type-color-btn oppskrift-add" data-add-row="${ri}">+ Legg til ingrediens</button><label class="label full recipe-steps-label">Fremgangsmåte<textarea class="field" data-ri="${ri}" data-rf="steps" placeholder="Steg 1: ...&#10;Steg 2: ...">${esc(r.steps||'')}</textarea></label></div>`).join('');
     wrap.querySelectorAll('input[data-f]').forEach(inp=>inp.oninput=()=>{oppskriftList[+inp.dataset.ri].rows[+inp.dataset.ii][inp.dataset.f]=inp.value});
-    wrap.querySelectorAll('input[data-rf]').forEach(inp=>inp.oninput=()=>{oppskriftList[+inp.dataset.ri].result=inp.value});
+    wrap.querySelectorAll('[data-rf]').forEach(inp=>inp.oninput=()=>{oppskriftList[+inp.dataset.ri][inp.dataset.rf]=inp.value});
     wrap.querySelectorAll('[data-add-row]').forEach(btn=>btn.onclick=()=>{oppskriftList[+btn.dataset.addRow].rows.push({item:'',qty:''});renderOppskriftList()});
     wrap.querySelectorAll('[data-remove-row]').forEach(btn=>btn.onclick=()=>{const[ri,ii]=btn.dataset.removeRow.split(':').map(Number);oppskriftList[ri].rows.splice(ii,1);if(!oppskriftList[ri].rows.length)oppskriftList[ri].rows.push({item:'',qty:''});renderOppskriftList()});
     wrap.querySelectorAll('[data-remove-recipe]').forEach(btn=>btn.onclick=()=>{oppskriftList.splice(+btn.dataset.removeRecipe,1);if(!oppskriftList.length)oppskriftList.push(emptyRecipe());renderOppskriftList()});
@@ -364,6 +432,8 @@ a{color:inherit;text-decoration:none}
 
   const adminModal=$('#adminModal');$('#adminBtn').onclick=()=>{adminModal.classList.add('show');$('#adminPinInput').value='';setTimeout(()=>$('#adminPinInput').focus(),40)};$('#cancelAdmin').onclick=()=>adminModal.classList.remove('show');
   function login(){if($('#adminPinInput').value===getPin()){adminModal.classList.remove('show');setAdmin(true)}else toast('Feil PIN','Prøv igjen.','danger')};$('#loginAdmin').onclick=login;$('#adminPinInput').addEventListener('keydown',e=>{if(e.key==='Enter')login()});$('#logoutBtn').onclick=()=>setAdmin(false);
+  $('#adminMenuBtn').onclick=e=>{e.stopPropagation();$('#adminMenuPanel').classList.toggle('hidden')};
+  document.addEventListener('click',e=>{if(!e.target.closest('.admin-menu-wrap'))$('#adminMenuPanel').classList.add('hidden')});
   const pinModal=$('#pinModal');$('#changePinBtn').onclick=()=>{pinModal.classList.add('show');$('#newPin1').value=$('#newPin2').value=''};$('#cancelPin').onclick=()=>pinModal.classList.remove('show');$('#savePin').onclick=()=>{const a=$('#newPin1').value,b=$('#newPin2').value;if(a.length<4){toast('PIN er for kort','Bruk minst fire tegn.','warn');return}if(a!==b){toast('PIN-kodene er ulike','Skriv samme PIN i begge feltene.','warn');return}try{localStorage.setItem(PIN_KEY,a);pinModal.classList.remove('show');toast('PIN oppdatert')}catch{toast('Kunne ikke lagre PIN','Nettleseren blokkerte lokal lagring.','danger')}};
 
   $('#exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify({version:5,source:'4316-hd-leaflet',places},null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='4316-san-andreas-kartdata.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),800)};
@@ -371,6 +441,22 @@ a{color:inherit;text-decoration:none}
 
   window.addEventListener('resize',()=>map&&map.invalidateSize());
   window.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();search.focus();search.select()}if(e.key==='Escape'){addMode=false;shell.classList.remove('add-mode');$('#tip').classList.remove('show');[placeModal,adminModal,pinModal].forEach(x=>x.classList.remove('show'))}});
+
+  const NAME_KEY='gta-rp-map-visitor-name-v1';
+  const nameGateModal=$('#nameGateModal');
+  function getVisitorName(){try{return localStorage.getItem(NAME_KEY)||''}catch{return ''}}
+  function setVisitorName(n){try{localStorage.setItem(NAME_KEY,n)}catch{}}
+  function renderOnline(names){$('#onlineCount').textContent=names.length||1;$('#onlineNames').innerHTML=names.length?names.map(n=>`<div>${esc(n)}</div>`).join(''):'<div>Ingen andre inne nå.</div>'}
+  function joinPresence(name){
+    const channel=sb.channel('4316-online',{config:{presence:{key:uid()}}});
+    channel.on('presence',{event:'sync'},()=>{const state=channel.presenceState();renderOnline(Object.values(state).flat().map(p=>p.name))});
+    channel.subscribe(status=>{if(status==='SUBSCRIBED')channel.track({name})});
+  }
+  function enterSite(name){setVisitorName(name);nameGateModal.classList.remove('show');joinPresence(name)}
+  $('#nameGateSubmit').onclick=()=>{const name=$('#nameGateInput').value.trim();if(!name){toast('Mangler navn','Skriv inn navnet ditt.','warn');return}enterSite(name)};
+  $('#nameGateInput').addEventListener('keydown',e=>{if(e.key==='Enter')$('#nameGateSubmit').click()});
+  const knownName=getVisitorName();
+  if(knownName){nameGateModal.classList.remove('show');joinPresence(knownName)}else{setTimeout(()=>$('#nameGateInput').focus(),50)}
 
   initMap();setAdmin(false);initPlaces();subscribeRealtime();
 })();
